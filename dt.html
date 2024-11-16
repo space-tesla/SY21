@@ -1,0 +1,61 @@
+Model the following Medical information as a graph model, and answerthe
+following queries using Cypher.
+There are various brands of medicine like Dr. Reddy, Cipla, SunPharma etc.
+Their uses vary across different states in India. The uses of medicine is
+measuredas %, with a high use defined as >=90%, Medium Use between 50
+to 90%, and Low Use<50%. Each medicine manufactures various types of
+medicine products like Tablet, Syrup, and Powder etc.
+1. Identify the labels and relationships, along with their properties, and drawa
+high-level Graph model. [3]
+2. Create nodes and relationships, along with their properties, and visualize
+your actual Graph model. [3]
+3. Answer the following queries using Cypher:
+a. List the names of different medicines considered in your graph [3]
+b. List the medicine that are highly Used in Rajasthan. [3]
+c. List the highly used tablet in Gujarat. [4]
+d. List the medicine names manufacturing “Powder” [4]
+
+# Step 1: Open MongoDB    using mongosh
+mongosh
+
+# Step 2: Create a database for the medical information system
+use medical_information_db
+
+# Step 3: Create collections for medicines, states, and types of medicines (Tablet, Syrup, Powder, etc.)
+db.medicines.insertMany([
+  { _id: 1, name: "Paracetamol", brand: "Dr. Reddy", type: "Tablet", state: "Rajasthan", use_percentage: 95 },
+  { _id: 2, name: "Ibuprofen", brand: "Cipla", type: "Syrup", state: "Gujarat", use_percentage: 85 },
+  { _id: 3, name: "Aspirin", brand: "SunPharma", type: "Powder", state: "Rajasthan", use_percentage: 92 },
+  { _id: 4, name: "Cetirizine", brand: "Cipla", type: "Tablet", state: "Gujarat", use_percentage: 70 },
+  { _id: 5, name: "Amoxicillin", brand: "Dr. Reddy", type: "Syrup", state: "Maharashtra", use_percentage: 60 },
+  { _id: 6, name: "Metformin", brand: "SunPharma", type: "Tablet", state: "Rajasthan", use_percentage: 99 }
+])
+
+# Step 4: Write the Cypher queries to fetch the required results
+
+# a. List the names of different medicines considered in the graph
+db.medicines.aggregate([
+  { $project: { name: 1 } },
+  { $group: { _id: "$name" } }
+])
+
+# b. List the medicine that are highly used in Rajasthan (use_percentage >= 90%)
+db.medicines.aggregate([
+  { $match: { state: "Rajasthan", use_percentage: { $gte: 90 } } },
+  { $project: { name: 1, use_percentage: 1 } }
+])
+
+# c. List the highly used tablet in Gujarat (use_percentage >= 90%)
+db.medicines.aggregate([
+  { $match: { state: "Gujarat", type: "Tablet", use_percentage: { $gte: 90 } } },
+  { $project: { name: 1, use_percentage: 1 } }
+])
+
+# d. List the medicine names manufacturing "Powder"
+db.medicines.aggregate([
+  { $match: { type: "Powder" } },
+  { $project: { name: 1 } }
+])
+
+# Step 5: Exit MongoDB   
+exit
